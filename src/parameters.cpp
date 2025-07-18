@@ -79,6 +79,7 @@ bool cooling_surface_enabled;
 bool cooling_beta_enabled;
 double cooling_beta_ramp_up;
 double cooling_beta;
+double cooling_beta_ini, cooling_beta_t0; /* Added by Steven */
 bool cooling_beta_reference;
 bool cooling_beta_model;
 bool cooling_beta_floor;
@@ -439,10 +440,12 @@ static void read_beta_cooling_config(){
 	cooling_beta_enabled = config::cfg.get_flag("CoolingBetaLocal", "No");
 
     cooling_beta = config::cfg.get<double>("CoolingBeta", 1.0);
+    cooling_beta_ini = config::cfg.get<double>("CoolingBetaIni", 30.0);
 
     units::precise_unit T0 = units::T0;
     cooling_beta_ramp_up =
 	config::cfg.get<double>("CoolingBetaRampUp", 0.0, T0);
+    cooling_beta_t0 = config::cfg.get<double>("CoolingBetaT0", 700.0, T0);
 
 	cooling_beta_reference = false;
 	cooling_beta_model = false;

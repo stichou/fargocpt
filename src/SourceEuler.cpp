@@ -661,7 +661,7 @@ static void thermal_relaxation(t_data &data, const double current_time) {
 
             //printf("r, beta = %f, %f \n", r, beta_inv );
 
-		    beta_inv /= beta_inv;
+		    beta_inv = 1.0 / beta_inv;
 		}
 
 		double delta_E = E;

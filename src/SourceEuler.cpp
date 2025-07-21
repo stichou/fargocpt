@@ -656,6 +656,11 @@ static void thermal_relaxation(t_data &data, const double current_time) {
                      + 0.5*(1.0+tanh((t-t0_beta)/t_ramp_up))
                      * ( beta - beta_ini);
 
+            //beta_inv = beta_inv * 
+            //         (1000 + 0.5*(1.0+tanh((r-20.0)/1.0))*(1.0 - 1000.0) ); 
+
+            //printf("r, beta = %f, %f \n", r, beta_inv );
+
 		    beta_inv /= beta_inv;
 		}
 

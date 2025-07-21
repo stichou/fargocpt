@@ -695,6 +695,8 @@ static void thermal_relaxation(t_data &data, const double current_time) {
 		}
 		const double qminus = delta_E * omega_k * beta_inv;
 
+        parameters::cooling_beta_current_time = 1.0/beta_inv;
+
 
 		Qminus(nr, naz) += qminus;
 	    }

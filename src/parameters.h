@@ -80,6 +80,8 @@ extern double cooling_beta;
 extern double cooling_beta_ini;
 // beta cooling t0 time
 extern double cooling_beta_t0;
+// beta at time t
+extern double cooling_beta_current_time;
 /// beta cooling to aspect ratio profile
 extern bool cooling_beta_reference;
 /// beta cooling to initial profile

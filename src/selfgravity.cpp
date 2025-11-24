@@ -421,96 +421,106 @@ void compute_FFT_kernel()
 
 	#pragma omp parallel for
     for (unsigned int i = 0; i < (unsigned int)local_Nx; i++) {
-    double u;
-	if (i + local_i_start < GlobalNRadial) {
-	    u = std::log(Radii[i + local_i_start] / Radii[0]);
-	} else {
-	    u = -std::log(Radii[2 * GlobalNRadial - (i + local_i_start)] /
-			  Radii[0]);
-	}
+      double u;
+	  if (i + local_i_start < GlobalNRadial) {
+	      u = std::log(Radii[i + local_i_start] / Radii[0]);
+	  } else {
+	      u = -std::log(Radii[2 * GlobalNRadial - (i + local_i_start)] /
+	  		  Radii[0]);
+	  }
 
-	for (unsigned int j = 0; j < NAzimuthal; j++) {
+	  for (unsigned int j = 0; j < NAzimuthal; j++) {
 	    const unsigned int l = i * stride + j;
-		const double theta = dphi * (double)j;
+	  	const double theta = dphi * (double)j;
 
-	if (parameters::self_gravity_mode == parameters::t_sg::sg_B) {
-		const double denominator = std::pow(epsilon*epsilon*std::exp(u)
-									+ 2.0 * (std::cosh(u) - std::cos(theta)),-1.5);
+	  	if (u==0. && theta==0.) {
+	  		/* At the singularity we must cancel the Kernels or 
+	  		* use tapering functions (see Sect. 4.1 of 
+	  		* https://doi.org/10.1051/0004-6361/202346178).
+	  		*/
+	  		K_radial[l] = 0.;
+	  		K_azimuthal[l]  = 0.;
+        } else {
+	        double L_sg;
+            const double distance_squared = 2. * std::pow(aspect_ratio, -2.) 
+            									* (std::cosh(u) - std::cos(theta)) 
+            									/  std::cosh(u);
 
-		K_radial[l] = 1.0 + epsilon*epsilon - std::cos(theta) * std::exp(-u);
-		K_radial[l] *= denominator;
-		K_azimuthal[l] = std::sin(theta);
-		K_azimuthal[l] *= denominator;
-	} else if (parameters::self_gravity_mode == parameters::t_sg::sg_BK) {
+	        if (parameters::self_gravity_mode == parameters::t_sg::sg_B) {
 
-		/* This Kernel is an anlytical solution in the limit Q->oo
-		* and can be faithfully used for Q>=20.
-		* A further correction accounting for all Q values is coming 
-		* at end 2023.
-		*/
-		if (u==0. && theta==0.) {
-			/* At the singularity we must cancel the Kernels or 
-			* use tapering functions (see Sect. 4.1 of 
-			* https://doi.org/10.1051/0004-6361/202346178).
-			*/
-			K_radial[l] = 0.;
-			K_azimuthal[l]  = 0.;
+                L_sg = M_PI * distance_squared * 
+                       std::pow( distance_squared + 
+                                 parameters::thickness_smoothing_sg*parameters::thickness_smoothing_sg ,-1.5);
 
-		} else {
-			const double distance_squared = 2. * std::pow(aspect_ratio, -2.) 
-												* (std::cosh(u) - std::cos(theta)) 
-												/  std::cosh(u);
+	        	//const double denominator = std::pow(epsilon*epsilon*std::exp(u)
+	        	//							+ 2.0 * (std::cosh(u) - std::cos(theta)),-1.5);
 
-			/* The modified Bessel functions of the second kind are also 
-			* known as "Irregular modified cylindrical Bessel functions".
-			* This last naming is the one used in the cmath library
-			*/
+	        	//K_radial[l] = 1.0 + epsilon*epsilon - std::cos(theta) * std::exp(-u);
+	        	//K_radial[l] *= denominator;
+	        	//K_azimuthal[l] = std::sin(theta);
+	        	//K_azimuthal[l] *= denominator;
+	        } else if (parameters::self_gravity_mode == parameters::t_sg::sg_BK) {
 
-			/* L_sg would be defined in Rendon Restrepo et al. 2024 (not yet published) */
-			/* The following computation of L_sg solve an exponential overflow/underflow for large distances
-			* by using the exact Taylor expansion at infinite of the Bessel Kernel . 
-			*/
+	        	/* This Kernel is an anlytical solution in the limit Q->oo
+	        	* and can be faithfully used for Q>=20.
+	        	* A further correction accounting for all Q values is coming 
+	        	* at end 2023.
+	        	*/
 
-			double L_sg;
-            const double X_aux = distance_squared / 8.;
-            if (X_aux < 60) {
-                L_sg = std::pow(M_PI, 0.5)
-                     * X_aux
-                     * std::exp(X_aux)
-                     * ( std::cyl_bessel_kl(1., X_aux)
-                     - std::cyl_bessel_kl(0., X_aux) );
-            } else { // Taylor expansion at inifinity in order to avoid exp overflow
-                L_sg = std::pow(M_PI, 0.5)
-                     * X_aux
-                     * 0.5 * std::pow(M_PI/2., 0.5)
-                     * ( std::pow(X_aux, -1.5)
-                       - 3./8.*std::pow(X_aux, -2.5)
-                       + 45./128.*std::pow(X_aux, -3.5) );
+	        	/* The modified Bessel functions of the second kind are also 
+	        	* known as "Irregular modified cylindrical Bessel functions".
+	        	* This last naming is the one used in the cmath library
+	        	*/
+
+	        	/* L_sg would be defined in Rendon Restrepo et al. 2024 (not yet published) */
+	        	/* The following computation of L_sg solve an exponential overflow/underflow for large distances
+	        	* by using the exact Taylor expansion at infinite of the Bessel Kernel . 
+	        	*/
+
+                const double X_aux = distance_squared / 8.;
+                if (X_aux < 60) {
+                    L_sg = std::pow(M_PI, 0.5)
+                         * X_aux
+                         * std::exp(X_aux)
+                         * ( std::cyl_bessel_kl(1., X_aux)
+                         - std::cyl_bessel_kl(0., X_aux) );
+                } else { // Taylor expansion at inifinity in order to avoid exp overflow
+                    L_sg = std::pow(M_PI, 0.5)
+                         * X_aux
+                         * 0.5 * std::pow(M_PI/2., 0.5)
+                         * ( std::pow(X_aux, -1.5)
+                           - 3./8.*std::pow(X_aux, -2.5)
+                           + 45./128.*std::pow(X_aux, -3.5) );
+                }
+
             }
-			
-			K_radial[l] = (L_sg / 2. / M_PI / aspect_ratio)
-						* std::pow(std::cosh(u), -0.5)
-						* std::pow(std::cosh(u)-std::cos(theta), -1.)
-						* (1.0-std::cos(theta)*std::exp(-u));
+	        	
+            if ( parameters::self_gravity_mode == parameters::t_sg::sg_B || 
+                 parameters::self_gravity_mode == parameters::t_sg::sg_BK ) {
 
-			K_azimuthal[l] =  (L_sg / 2. / M_PI / aspect_ratio)
-							* std::pow(std::cosh(u), -0.5)
-							* std::pow(std::cosh(u)-std::cos(theta), -1.)
-							* std::sin(theta);
-		}
+	            K_radial[l] = (L_sg / 2. / M_PI / aspect_ratio)
+	            			* std::pow(std::cosh(u), -0.5)
+	            			* std::pow(std::cosh(u)-std::cos(theta), -1.)
+	            			* (1.0-std::cos(theta)*std::exp(-u));
 
+	            K_azimuthal[l] =  (L_sg / 2. / M_PI / aspect_ratio)
+	            				* std::pow(std::cosh(u), -0.5)
+	            				* std::pow(std::cosh(u)-std::cos(theta), -1.)
+	            				* std::sin(theta);
+	        }
+	        			
+	        if (parameters::self_gravity_mode == parameters::t_sg::sg_S) {
+	        	const double denominator = std::pow(
+	        	2 * (std::cosh(u) - std::cos(theta)) +
+	        	    lambda_sq * (std::exp(u) + std::exp(-u) - 2) + chi_sq, -1.5);
 
-	} else if (parameters::self_gravity_mode == parameters::t_sg::sg_S) {
-		const double denominator = std::pow(
-		2 * (std::cosh(u) - std::cos(theta)) +
-		    lambda_sq * (std::exp(u) + std::exp(-u) - 2) + chi_sq, -1.5);
-
-		K_radial[l] = 1.0 - std::cos(theta) * std::exp(-u);
-		K_radial[l] *= denominator;
-		K_azimuthal[l] = std::sin(theta);
-		K_azimuthal[l] *= denominator;
-	}
-	}
+	        	K_radial[l] = 1.0 - std::cos(theta) * std::exp(-u);
+	        	K_radial[l] *= denominator;
+	        	K_azimuthal[l] = std::sin(theta);
+	        	K_azimuthal[l] *= denominator;
+	        }    
+	      }
+       }
     }
 
     fftw_execute(fftplan_forward_K_radial);
@@ -687,19 +697,19 @@ void compute_acceleration(t_polargrid &density)
 	    g_azimuthal[l] *= normacct;
 	}
     }
-#ifdef EPSILON_SMOOTHING_SG
-	// Eventually, we take the compensation from selfforce into account
-	// g_r(u,phi) is corrected by G*sigma(u,phi)*Δu*Δphi/B (3.43 page 57)
-	#pragma omp parallel for
-	for (unsigned int i = 0 ; i < nr; i++ ) {
-		for (unsigned int j = 0; j < NAzimuthal; j++ ) {
-			const unsigned int l = i*NAzimuthal + j;
-			if ( (i+IMIN) < GlobalNRadial ) {
-				g_radial[l] += constants::G*density.Field[l]*r_step*t_step / epsilon;
-			}
-		}
-	}
-#endif
+    if (parameters::self_gravity_mode == parameters::t_sg::sg_S){
+	  // Eventually, we take the compensation from selfforce into account
+	  // g_r(u,phi) is corrected by G*sigma(u,phi)*Δu*Δphi/B (3.43 page 57)
+	  #pragma omp parallel for
+	  for (unsigned int i = 0 ; i < nr; i++ ) {
+	  	for (unsigned int j = 0; j < NAzimuthal; j++ ) {
+	  		const unsigned int l = i*NAzimuthal + j;
+	  		if ( (i+IMIN) < GlobalNRadial ) {
+	  			g_radial[l] += constants::G*density.Field[l]*r_step*t_step / epsilon;
+	  		}
+	  	}
+	  }
+    }
 }
 
 /**

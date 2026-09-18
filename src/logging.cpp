@@ -252,6 +252,12 @@ void print_runtime_info()
 	    sim::N_snapshot, sim::N_monitor, sim::N_hydro_iter, sim::time, sim::last_dt,
 	    realtime / 1000000.0, time_per_step_ms);
 
+	if (parameters::cooling_beta_enabled) {
+	    logging::print_master(
+	        LOG_INFO
+	        "Logging info: beta_cool %.2f\n", parameters::cooling_beta_current_time);
+	}
+
 	n_last_log = sim::N_hydro_iter;
 	realtime_last_log = realtime_now;
     }

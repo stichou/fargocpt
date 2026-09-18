@@ -643,13 +643,20 @@ static void thermal_relaxation(t_data &data, const double current_time) {
 		const double omega_k = calculate_omega_kepler(r);
 		const double E = data[t_data::ENERGY](nr, naz);
 		const double t_ramp_up = parameters::cooling_beta_ramp_up;
+                const double t0_beta = parameters::cooling_beta_t0;
+                const double beta = parameters::cooling_beta;
+                const double beta_ini = parameters::cooling_beta_ini;
 
 		double beta_inv = 1 / parameters::cooling_beta;
 		if (t_ramp_up > 0.0) {
 			const double t = current_time;
-		    double ramp_factor =
-			1 - std::exp(-std::pow(2 * t / t_ramp_up, 2));
-		    beta_inv = beta_inv * ramp_factor;
+                        beta_inv = beta_ini 
+                                 + 0.5*(1.0+tanh((t-t0_beta)/t_ramp_up))
+                                 * ( beta - beta_ini);
+
+                        //printf("r, beta = %f, %f \n", r, beta_inv );
+
+		        beta_inv = 1.0 / beta_inv;
 		}
 
 		double delta_E = E;
@@ -682,6 +689,8 @@ static void thermal_relaxation(t_data &data, const double current_time) {
 		    delta_E -= minimum_energy;
 		}
 		const double qminus = delta_E * omega_k * beta_inv;
+
+                parameters::cooling_beta_current_time = 1.0/beta_inv;
 
 
 		Qminus(nr, naz) += qminus;

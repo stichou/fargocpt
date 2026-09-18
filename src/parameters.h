@@ -76,6 +76,12 @@ extern bool cooling_beta_enabled;
 extern double cooling_beta_ramp_up;
 /// beta cooling constant
 extern double cooling_beta;
+/// beta cooling initial value
+extern double cooling_beta_ini;
+// beta cooling t0 time
+extern double cooling_beta_t0;
+// beta at time t
+extern double cooling_beta_current_time;
 /// beta cooling to aspect ratio profile
 extern bool cooling_beta_reference;
 /// beta cooling to initial profile
@@ -220,9 +226,9 @@ extern bool do_init_secondary_disk;
 extern bool self_gravity;
 // type of opacity
 enum t_sg {
-    sg_B,      // fourier trafo based on Baruteau PhD thesis with first order smoothing length
+    sg_B,     // fourier trafo based on Baruteau PhD thesis with first order smoothing length
     sg_S,     // symmetric smoothing length based on masterthesis by Tobias Moldenhauer
-    sg_BK       // exact solution for the kernel using bessel functions by Steven Rendon Restrepo
+    sg_BK,    // exact solution for the kernel using bessel functions by Steven Rendon Restrepo
 };
 extern t_sg self_gravity_mode;
 extern unsigned int self_gravity_steps_between_kernel_update;

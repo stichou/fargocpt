@@ -128,32 +128,32 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 		const double dy = y - g_ypl[k];
 		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
 
+		// Compute smooth and smooth_factor_klahr (common to both methods)
+		const double smooth = compute_smoothing(data, n_rad, n_az, k);
+		double smooth_factor_klahr = 1.0;
+		if (g_cubic_smoothing_radius[k] > 0.0) {
+		    /// scale height is reduced by the planets and can cause the
+		    /// epsilon smoothing be not sufficient for numerical
+		    /// stability. Thus we add the gravitational potential
+		    /// smoothing proposed by Klahr & Kley 2005; but the
+		    /// derivative of it, since we apply it directly on the
+		    /// force
+			const double r_sm = g_cubic_smoothing_radius[k];
+			const double dist_sm = std::sqrt(dist_2 + std::pow(smooth, 2));
+
+			if (dist_sm < r_sm) {
+			    smooth_factor_klahr =
+				-(3.0 * std::pow(dist_sm / r_sm, 4.0) -
+				  4.0 * std::pow(dist_sm / r_sm, 3.0));
+			}
+		}
+
 		// Choose between smoothing and bessel methods for force calculation
 		switch (parameters::body_force_method) {
 		case body_force_smoothing: {
-			const double smooth = compute_smoothing(data, n_rad, n_az, k);
 			const double dist_2_sm = dist_2 + std::pow(smooth, 2);
-			volatile const double dist_sm = std::sqrt(dist_2_sm);
-			const double dist_3_sm = dist_sm * dist_2_sm;
-			const double inv_dist_3_sm = 1.0 / dist_3_sm;
-
-			double smooth_factor_klahr = 1.0;
-
-			if (g_cubic_smoothing_radius[k] > 0.0) {
-			    /// scale height is reduced by the planets and can cause the
-			    /// epsilon smoothing be not sufficient for numerical
-			    /// stability. Thus we add the gravitational potential
-			    /// smoothing proposed by Klahr & Kley 2005; but the
-			    /// derivative of it, since we apply it directly on the
-			    /// force
-				const double r_sm = g_cubic_smoothing_radius[k];
-
-				if (dist_sm < r_sm) {
-				    smooth_factor_klahr =
-					-(3.0 * std::pow(dist_sm / r_sm, 4.0) -
-					  4.0 * std::pow(dist_sm / r_sm, 3.0));
-				}
-			}
+			const double dist_sm = std::sqrt(dist_2_sm);
+			const double inv_dist_3_sm = 1.0 / (dist_sm * dist_2_sm);
 
 			// direct term from planet (smoothing method)
 			accel_cart.x -= dx * constants::G * g_mpl[k] * inv_dist_3_sm *
@@ -163,41 +163,21 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 			break;
 		}
 		case body_force_bessel: {
-			// Bessel function formulation - placeholder for future implementation
-			// TODO: Replace with actual Bessel function formulation when provided
-			const double smooth = compute_smoothing(data, n_rad, n_az, k);
-			const double dist_2_sm = dist_2 + std::pow(smooth, 2);
-			volatile const double dist_sm = std::sqrt(dist_2_sm);
-			const double dist_3_sm = dist_sm * dist_2_sm;
-			const double inv_dist_3_sm = 1.0 / dist_3_sm;
-
-			double smooth_factor_klahr = 1.0;
-
-			if (g_cubic_smoothing_radius[k] > 0.0) {
-				const double r_sm = g_cubic_smoothing_radius[k];
-
-				if (dist_sm < r_sm) {
-				    smooth_factor_klahr =
-					-(3.0 * std::pow(dist_sm / r_sm, 4.0) -
-					  4.0 * std::pow(dist_sm / r_sm, 3.0));
-				}
-			}
-
-			const double scale_height = data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
+			// Bessel function formulation
+			const double scale_height = data[t_data::SCALE_HEIGHT](n_rad, n_az);
 			const double s_dist = std::sqrt(dist_2);
-			const double X_aux = dist_2 / 4.0 / pow(scale_height, 2.0);
+			const double X_aux = dist_2 / (4.0 * scale_height * scale_height);
 
-                        const double bessel_force = constants::G * g_mpl[k] / s_dist * 
-				                    std::pow(2.0 / M_PI, 0.5) / scale_height *
-                                                    * X_aux
-                                                    * std::exp(X_aux)
-                                                    * ( std::cyl_bessel_kl(1., X_aux)
-                                                    - std::cyl_bessel_kl(0., X_aux) );
+			const double bessel_force = constants::G * g_mpl[k] / s_dist *
+				std::pow(2.0 / M_PI, 0.5) / scale_height *
+				X_aux * std::exp(X_aux) *
+				(std::cyl_bessel_kl(1., X_aux) - std::cyl_bessel_kl(0., X_aux));
 
-                        accel_cart.x -= dx / s_dist * bessel_force * smooth_factor_klahr;
-                        accel_cart.y -= dy / s_dist * bessel_force * smooth_factor_klahr;
-
+			accel_cart.x -= dx / s_dist * bessel_force * smooth_factor_klahr;
+			accel_cart.y -= dy / s_dist * bessel_force * smooth_factor_klahr;
 			break;
+		}
+		}
 		}
 		}
 	    }

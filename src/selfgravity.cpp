@@ -435,46 +435,38 @@ void compute_FFT_kernel()
 
 	  	if (u==0. && theta==0.) {
 	  		/* At the singularity we must cancel the Kernels or 
-	  		* use tapering functions (see Sect. 4.1 of 
+	  		* use tapering functions (see Sect. 4.1 of Rendon Restrepo & Barge 2023; 
 	  		* https://doi.org/10.1051/0004-6361/202346178).
 	  		*/
 	  		K_radial[l] = 0.;
 	  		K_azimuthal[l]  = 0.;
         } else {
 	        double L_sg;
-            const double distance_squared = 2. * std::pow(aspect_ratio, -2.) 
-            									* (std::cosh(u) - std::cos(theta)) 
-            									/  std::cosh(u);
+                const double distance_squared = 2. * std::pow(aspect_ratio, -2.) 
+            					* (std::cosh(u) - std::cos(theta)) /  std::cosh(u);
 
 	        if (parameters::self_gravity_mode == parameters::t_sg::sg_B) {
 
-                L_sg = M_PI * distance_squared * 
-                       std::pow( distance_squared + 
-                                 parameters::thickness_smoothing_sg*parameters::thickness_smoothing_sg ,-1.5);
+                        L_sg = M_PI * distance_squared * 
+                               std::pow( distance_squared + 
+                                         parameters::thickness_smoothing_sg*parameters::thickness_smoothing_sg ,-1.5);
 
-	        	//const double denominator = std::pow(epsilon*epsilon*std::exp(u)
-	        	//							+ 2.0 * (std::cosh(u) - std::cos(theta)),-1.5);
-
-	        	//K_radial[l] = 1.0 + epsilon*epsilon - std::cos(theta) * std::exp(-u);
-	        	//K_radial[l] *= denominator;
-	        	//K_azimuthal[l] = std::sin(theta);
-	        	//K_azimuthal[l] *= denominator;
 	        } else if (parameters::self_gravity_mode == parameters::t_sg::sg_BK) {
 
-	        	/* This Kernel is an anlytical solution in the limit Q->oo
-	        	* and can be faithfully used for Q>=20.
-	        	* A further correction accounting for all Q values is coming 
-	        	* at end 2023.
-	        	*/
+	        	/* This Kernel is an anlytical solution for 2D self-gravity. 
+			 * See Rendon Restrepo et al. 2025
+			 * https://doi.org/10.1051/0004-6361/202555989
+	        	 */
 
 	        	/* The modified Bessel functions of the second kind are also 
 	        	* known as "Irregular modified cylindrical Bessel functions".
 	        	* This last naming is the one used in the cmath library
 	        	*/
 
-	        	/* L_sg would be defined in Rendon Restrepo et al. 2024 (not yet published) */
+	        	/* L_sg is defined in Eq. C5 of Rendon Restrepo et al. 2025 */
 	        	/* The following computation of L_sg solve an exponential overflow/underflow for large distances
-	        	* by using the exact Taylor expansion at infinite of the Bessel Kernel . 
+	        	* by using the exact Taylor expansion at infinite of the Bessel Kernel 
+			* (See Sect. 5.3 of Rendon Restrepo et al. 2025). 
 	        	*/
 
                 const double X_aux = distance_squared / 8.;
@@ -697,6 +689,13 @@ void compute_acceleration(t_polargrid &density)
 	    g_azimuthal[l] *= normacct;
 	}
     }
+
+    /* For the Bessel Kernel it is not needed to add a compensation term, since
+     * gravity is symmetric (See Eq. 9 of Rendon Restrepo et al. 2025). This 
+     * correction was added to the smoothing length paradigm but not to the 
+     * symmetric smoothing length based on the master thesis of T. Moldenhauer
+     */
+
     if (parameters::self_gravity_mode == parameters::t_sg::sg_S){
 	  // Eventually, we take the compensation from selfforce into account
 	  // g_r(u,phi) is corrected by G*sigma(u,phi)*Δu*Δphi/B (3.43 page 57)

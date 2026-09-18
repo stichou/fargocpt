@@ -248,9 +248,15 @@ void print_runtime_info()
 
 	logging::print_master(
 	    LOG_INFO
-	    "Logging info: snapshot %d, monitor %d, hydrostep %d, time inside simulation %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms, beta_cool %.2f\n",
+	    "Logging info: snapshot %d, monitor %d, hydrostep %d, time inside simulation %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
 	    sim::N_snapshot, sim::N_monitor, sim::N_hydro_iter, sim::time, sim::last_dt,
-	    realtime / 1000000.0, time_per_step_ms, parameters::cooling_beta_current_time);
+	    realtime / 1000000.0, time_per_step_ms);
+
+	if (parameters::cooling_beta_enabled) {
+	    logging::print_master(
+	        LOG_INFO
+	        "Logging info: beta_cool %.2f\n", parameters::cooling_beta_current_time);
+	}
 
 	n_last_log = sim::N_hydro_iter;
 	realtime_last_log = realtime_now;

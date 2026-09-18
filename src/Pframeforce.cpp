@@ -183,11 +183,20 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 				}
 			}
 
-			// direct term from planet (bessel method - TODO: replace with actual Bessel formulation)
-			accel_cart.x -= dx * constants::G * g_mpl[k] * inv_dist_3_sm *
-				smooth_factor_klahr;
-			accel_cart.y -= dy * constants::G * g_mpl[k] * inv_dist_3_sm *
-				smooth_factor_klahr;
+			const double scale_height = data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
+			const double s_dist = std::sqrt(dist_2);
+			const double X_aux = dist_2 / 4.0 / pow(scale_height, 2.0);
+
+                        const double bessel_force = constants::G * g_mpl[k] / s_dist * 
+				                    std::pow(2.0 / M_PI, 0.5) / scale_height *
+                                                    * X_aux
+                                                    * std::exp(X_aux)
+                                                    * ( std::cyl_bessel_kl(1., X_aux)
+                                                    - std::cyl_bessel_kl(0., X_aux) );
+
+                        accel_cart.x -= dx / s_dist * bessel_force * smooth_factor_klahr;
+                        accel_cart.y -= dy / s_dist * bessel_force * smooth_factor_klahr;
+
 			break;
 		}
 		}

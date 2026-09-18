@@ -108,6 +108,7 @@ ThicknessSmoothing: 0.6   # Softening parameters in disk thickness [default = 0.
 ThicknessSmoothingSG: 0.6   # Softening parameter for SG [default = ThicknessSmoothing]
 
 ## Body force calculation method (only applies when BodyForceFromPotential is true)
+BodyForceFromPotential: no
 BodyForceMethod: smoothing   # Choose between "smoothing" or "bessel" for N-body forces on planets [default = smoothing]
 
 MassAccretionRadius: 0.3 # Radius from which planets accrete mass in hill radii

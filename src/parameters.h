@@ -236,6 +236,13 @@ extern double self_gravity_aspectratio_change_threshold;
 
 extern bool body_force_from_potential;
 
+// Body force calculation method
+enum t_body_force_method {
+    body_force_smoothing,    // Use smoothing length approach
+    body_force_bessel        // Use Bessel function formulation
+};
+extern t_body_force_method body_force_method;
+
 // output
 extern bool write_torques;
 

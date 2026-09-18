@@ -157,6 +157,7 @@ unsigned int self_gravity_steps_between_kernel_update;
 double self_gravity_aspectratio_change_threshold;
 
 bool body_force_from_potential;
+t_body_force_method body_force_method;
 
 bool write_torques;
 
@@ -784,6 +785,19 @@ void read(const std::string &filename, t_data &data)
     } else {
 	logging::print_master(LOG_INFO
 			      "Body force on gas computed via force.\n");
+    }
+
+    // Body force calculation method (only applies when body_force_from_potential is true)
+    if (body_force_from_potential) {
+	const std::string bfmethod = config::cfg.get_lowercase("BodyForceMethod", "smoothing");
+	if (bfmethod == "smoothing") {
+		body_force_method = body_force_smoothing;
+	} else if (bfmethod == "bessel") {
+		body_force_method = body_force_bessel;
+	} else {
+		throw std::runtime_error("Invalid choice for BodyForceMethod: " + bfmethod + ". Valid options are: smoothing, bessel");
+	}
+	logging::print_master(LOG_INFO "Body force method: %s\n", bfmethod.c_str());
     }
 
     // boundary layer parameters

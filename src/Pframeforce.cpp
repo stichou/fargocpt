@@ -105,82 +105,78 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
     double *acc_r = data[t_data::ACCEL_RADIAL].Field;
     double *acc_az = data[t_data::ACCEL_AZIMUTHAL].Field;
 
-    const unsigned int N_az_max =
-	data[t_data::ACCEL_RADIAL].get_size_azimuthal();
-	const unsigned int Nr = data[t_data::ACCEL_RADIAL].get_size_radial() - 1;
+    const unsigned int N_az_max = data[t_data::ACCEL_RADIAL].get_size_azimuthal();
+    const unsigned int Nr = data[t_data::ACCEL_RADIAL].get_size_radial() - 1;
 
-	#pragma omp parallel for collapse(2)
+    #pragma omp parallel for collapse(2)
     for (unsigned int n_rad = 1;
-	 n_rad < Nr; ++n_rad) { // No need to compute Vr at the top of the outer ghost cells
-	for (unsigned int n_az = 0; n_az < N_az_max; ++n_az) {
-
-	    const double r = Rmed[n_rad];
-
-	    const int cell_id = get_cell_id(n_rad, n_az);
-	    const double x = CellCenterX->Field[cell_id];
-	    const double y = CellCenterY->Field[cell_id];
-
-
-	    pair accel_cart = refframe::IndirectTerm;
-	    for (unsigned int k = 0; k < N_planets; k++) {
-
-		const double dx = x - g_xpl[k];
-		const double dy = y - g_ypl[k];
-		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
-
-		// Compute smooth and smooth_factor_klahr (common to both methods)
-		const double smooth = compute_smoothing(data, n_rad, n_az, k);
-		double smooth_factor_klahr = 1.0;
-		if (g_cubic_smoothing_radius[k] > 0.0) {
-		    /// scale height is reduced by the planets and can cause the
-		    /// epsilon smoothing be not sufficient for numerical
-		    /// stability. Thus we add the gravitational potential
-		    /// smoothing proposed by Klahr & Kley 2005; but the
-		    /// derivative of it, since we apply it directly on the
-		    /// force
-			const double r_sm = g_cubic_smoothing_radius[k];
-			const double dist_sm = std::sqrt(dist_2 + std::pow(smooth, 2));
-
-			if (dist_sm < r_sm) {
-			    smooth_factor_klahr =
-				-(3.0 * std::pow(dist_sm / r_sm, 4.0) -
-				  4.0 * std::pow(dist_sm / r_sm, 3.0));
-			}
-		}
-
-		// Choose between smoothing and bessel methods for force calculation
-		switch (parameters::body_force_method) {
-		case body_force_smoothing: {
-			const double dist_2_sm = dist_2 + std::pow(smooth, 2);
-			const double dist_sm = std::sqrt(dist_2_sm);
-			const double inv_dist_3_sm = 1.0 / (dist_sm * dist_2_sm);
-
-			// direct term from planet (smoothing method)
-			accel_cart.x -= dx * constants::G * g_mpl[k] * inv_dist_3_sm *
-				smooth_factor_klahr;
-			accel_cart.y -= dy * constants::G * g_mpl[k] * inv_dist_3_sm *
-				smooth_factor_klahr;
-			break;
-		}
-		case body_force_bessel: {
-			// Bessel function formulation
-			const double scale_height = data[t_data::SCALE_HEIGHT](n_rad, n_az);
-			const double s_dist = std::sqrt(dist_2);
-			const double X_aux = dist_2 / (4.0 * scale_height * scale_height);
-
-			const double bessel_force = constants::G * g_mpl[k] / s_dist *
-				std::pow(2.0 / M_PI, 0.5) / scale_height *
-				X_aux * std::exp(X_aux) *
-				(std::cyl_bessel_kl(1., X_aux) - std::cyl_bessel_kl(0., X_aux));
-
-			accel_cart.x -= dx / s_dist * bessel_force * smooth_factor_klahr;
-			accel_cart.y -= dy / s_dist * bessel_force * smooth_factor_klahr;
-			break;
-		}
-		}
-		}
-		}
-	    }
+        n_rad < Nr; ++n_rad) { // No need to compute Vr at the top of the outer ghost cells
+        for (unsigned int n_az = 0; n_az < N_az_max; ++n_az) {
+    
+            const double r = Rmed[n_rad];
+    
+            const int cell_id = get_cell_id(n_rad, n_az);
+            const double x = CellCenterX->Field[cell_id];
+            const double y = CellCenterY->Field[cell_id];
+    
+    
+            pair accel_cart = refframe::IndirectTerm;
+            for (unsigned int k = 0; k < N_planets; k++) {
+       	        const double dx = x - g_xpl[k];
+       	        const double dy = y - g_ypl[k];
+       	        const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
+    
+       	        // Compute smooth and smooth_factor_klahr (common to both methods)
+       	        const double smooth = compute_smoothing(data, n_rad, n_az, k);
+       	        double smooth_factor_klahr = 1.0;
+       	        if (g_cubic_smoothing_radius[k] > 0.0) {
+       	            /// scale height is reduced by the planets and can cause the
+       	            /// epsilon smoothing be not sufficient for numerical
+       	            /// stability. Thus we add the gravitational potential
+       	            /// smoothing proposed by Klahr & Kley 2005; but the
+       	            /// derivative of it, since we apply it directly on the
+       	            /// force
+       	        	const double r_sm = g_cubic_smoothing_radius[k];
+       	        	const double dist_sm = std::sqrt(dist_2 + std::pow(smooth, 2));
+    
+       	        	if (dist_sm < r_sm) {
+       	        	    smooth_factor_klahr =
+       	        		-(3.0 * std::pow(dist_sm / r_sm, 4.0) -
+       	        		  4.0 * std::pow(dist_sm / r_sm, 3.0));
+       	        	}
+       	        }
+    
+       	        // Choose between smoothing and bessel methods for force calculation
+       	        switch (parameters::body_force_method) {
+       	            case parameters::body_force_smoothing: {
+       	        	const double dist_2_sm = dist_2 + std::pow(smooth, 2);
+       	        	const double dist_sm = std::sqrt(dist_2_sm);
+       	        	const double inv_dist_3_sm = 1.0 / (dist_sm * dist_2_sm);
+    
+       	        	// direct term from planet (smoothing method)
+       	        	accel_cart.x -= dx * constants::G * g_mpl[k] * inv_dist_3_sm *
+       	        		smooth_factor_klahr;
+       	        	accel_cart.y -= dy * constants::G * g_mpl[k] * inv_dist_3_sm *
+       	        		smooth_factor_klahr;
+       	        	break;
+       	            }
+       	            case parameters::body_force_bessel: {
+       	        	// Bessel function formulation
+       	        	const double scale_height = data[t_data::SCALE_HEIGHT](n_rad, n_az);
+       	        	const double s_dist = std::sqrt(dist_2);
+       	        	const double X_aux = dist_2 / (4.0 * scale_height * scale_height);
+    
+       	        	const double bessel_force = constants::G * g_mpl[k] / s_dist *
+       	        		std::pow(2.0 / M_PI, 0.5) / scale_height *
+       	        		X_aux * std::exp(X_aux) *
+       	        		(std::cyl_bessel_kl(1., X_aux) - std::cyl_bessel_kl(0., X_aux));
+    
+       	        	accel_cart.x -= dx / s_dist * bessel_force * smooth_factor_klahr;
+       	        	accel_cart.y -= dy / s_dist * bessel_force * smooth_factor_klahr;
+       	        	break;
+       	            }
+       	        }
+            }
 
 	    //  x/r = cos(phi)
 	    //  y/r = sin(phi)

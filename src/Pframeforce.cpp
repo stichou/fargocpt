@@ -124,39 +124,73 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 	    pair accel_cart = refframe::IndirectTerm;
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
-		const double smooth = compute_smoothing(data, n_rad, n_az, k);
-
 		const double dx = x - g_xpl[k];
 		const double dy = y - g_ypl[k];
 		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
-		const double dist_2_sm = dist_2 + std::pow(smooth, 2);
-		volatile const double dist_sm = std::sqrt(dist_2_sm);
-		const double dist_3_sm = dist_sm * dist_2_sm;
-		const double inv_dist_3_sm = 1.0 / dist_3_sm;
 
-		double smooth_factor_klahr = 1.0;
+		// Choose between smoothing and bessel methods for force calculation
+		switch (parameters::body_force_method) {
+		case body_force_smoothing: {
+			const double smooth = compute_smoothing(data, n_rad, n_az, k);
+			const double dist_2_sm = dist_2 + std::pow(smooth, 2);
+			volatile const double dist_sm = std::sqrt(dist_2_sm);
+			const double dist_3_sm = dist_sm * dist_2_sm;
+			const double inv_dist_3_sm = 1.0 / dist_3_sm;
 
-		if (g_cubic_smoothing_radius[k] > 0.0) {
-		    /// scale height is reduced by the planets and can cause the
-		    /// epsilon smoothing be not sufficient for numerical
-		    /// stability. Thus we add the gravitational potential
-		    /// smoothing proposed by Klahr & Kley 2005; but the
-		    /// derivative of it, since we apply it directly on the
-		    /// force
-			const double r_sm = g_cubic_smoothing_radius[k];
+			double smooth_factor_klahr = 1.0;
 
-			if (dist_sm < r_sm) {
-			    smooth_factor_klahr =
-				-(3.0 * std::pow(dist_sm / r_sm, 4.0) -
-				  4.0 * std::pow(dist_sm / r_sm, 3.0));
+			if (g_cubic_smoothing_radius[k] > 0.0) {
+			    /// scale height is reduced by the planets and can cause the
+			    /// epsilon smoothing be not sufficient for numerical
+			    /// stability. Thus we add the gravitational potential
+			    /// smoothing proposed by Klahr & Kley 2005; but the
+			    /// derivative of it, since we apply it directly on the
+			    /// force
+				const double r_sm = g_cubic_smoothing_radius[k];
+
+				if (dist_sm < r_sm) {
+				    smooth_factor_klahr =
+					-(3.0 * std::pow(dist_sm / r_sm, 4.0) -
+					  4.0 * std::pow(dist_sm / r_sm, 3.0));
+				}
 			}
-		}
 
-		// direct term from planet
-		accel_cart.x -= dx * constants::G * g_mpl[k] * inv_dist_3_sm *
-			smooth_factor_klahr;
-		accel_cart.y -= dy * constants::G * g_mpl[k] * inv_dist_3_sm *
-			smooth_factor_klahr;
+			// direct term from planet (smoothing method)
+			accel_cart.x -= dx * constants::G * g_mpl[k] * inv_dist_3_sm *
+				smooth_factor_klahr;
+			accel_cart.y -= dy * constants::G * g_mpl[k] * inv_dist_3_sm *
+				smooth_factor_klahr;
+			break;
+		}
+		case body_force_bessel: {
+			// Bessel function formulation - placeholder for future implementation
+			// TODO: Replace with actual Bessel function formulation when provided
+			const double smooth = compute_smoothing(data, n_rad, n_az, k);
+			const double dist_2_sm = dist_2 + std::pow(smooth, 2);
+			volatile const double dist_sm = std::sqrt(dist_2_sm);
+			const double dist_3_sm = dist_sm * dist_2_sm;
+			const double inv_dist_3_sm = 1.0 / dist_3_sm;
+
+			double smooth_factor_klahr = 1.0;
+
+			if (g_cubic_smoothing_radius[k] > 0.0) {
+				const double r_sm = g_cubic_smoothing_radius[k];
+
+				if (dist_sm < r_sm) {
+				    smooth_factor_klahr =
+					-(3.0 * std::pow(dist_sm / r_sm, 4.0) -
+					  4.0 * std::pow(dist_sm / r_sm, 3.0));
+				}
+			}
+
+			// direct term from planet (bessel method - TODO: replace with actual Bessel formulation)
+			accel_cart.x -= dx * constants::G * g_mpl[k] * inv_dist_3_sm *
+				smooth_factor_klahr;
+			accel_cart.y -= dy * constants::G * g_mpl[k] * inv_dist_3_sm *
+				smooth_factor_klahr;
+			break;
+		}
+		}
 	    }
 
 	    //  x/r = cos(phi)

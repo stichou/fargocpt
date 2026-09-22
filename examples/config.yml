@@ -109,7 +109,7 @@ ThicknessSmoothingSG: 0.6   # Softening parameter for SG [default = ThicknessSmo
 
 ## Body force calculation method (only applies when BodyForceFromPotential is false)
 BodyForceFromPotential: no
-BodyForceMethod: smoothing   # Choose between "smoothing", "bessel_exact" (alias "bessel") or "bessel_approx" for N-body forces on the gas [default = smoothing]
+BodyForceMethod: smoothing   # Choose between "smoothing", "bessel" or "bessel_approx" for N-body forces on the gas [default = smoothing]
 
 MassAccretionRadius: 0.3 # Radius from which planets accrete mass in hill radii
 

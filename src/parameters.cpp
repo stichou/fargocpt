@@ -792,12 +792,12 @@ void read(const std::string &filename, t_data &data)
 	const std::string bfmethod = config::cfg.get_lowercase("BodyForceMethod", "smoothing");
 	if (bfmethod == "smoothing") {
 		body_force_method = body_force_smoothing;
-	} else if (bfmethod == "bessel" || bfmethod == "bessel_exact") {
+	} else if (bfmethod == "bessel") {
 		body_force_method = body_force_bessel_exact;
 	} else if (bfmethod == "bessel_approx") {
 		body_force_method = body_force_bessel_approx;
 	} else {
-		throw std::runtime_error("Invalid choice for BodyForceMethod: " + bfmethod + ". Valid options are: smoothing, bessel_exact, bessel_approx");
+		throw std::runtime_error("Invalid choice for BodyForceMethod: " + bfmethod + ". Valid options are: smoothing, bessel, bessel_approx");
 	}
 	logging::print_master(LOG_INFO "Body force method: %s\n", bfmethod.c_str());
     }

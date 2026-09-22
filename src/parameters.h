@@ -238,8 +238,11 @@ extern bool body_force_from_potential;
 
 // Body force calculation method
 enum t_body_force_method {
-    body_force_smoothing,    // Use smoothing length approach
-    body_force_bessel        // Use Bessel function formulation
+    body_force_smoothing,     // Use smoothing length approach
+    body_force_bessel_exact,   // Use exact Bessel function formulation
+    body_force_bessel_approx  // Use approximation of the Bessel function
+                               // formulation with a space varying smoothing
+                               // length
 };
 extern t_body_force_method body_force_method;
 

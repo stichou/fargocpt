@@ -107,9 +107,9 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 ThicknessSmoothing: 0.6   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: 0.6   # Softening parameter for SG [default = ThicknessSmoothing]
 
-## Body force calculation method (only applies when BodyForceFromPotential is true)
+## Body force calculation method (only applies when BodyForceFromPotential is false)
 BodyForceFromPotential: no
-BodyForceMethod: smoothing   # Choose between "smoothing" or "bessel" for N-body forces on planets [default = smoothing]
+BodyForceMethod: smoothing   # Choose between "smoothing", "bessel_exact" (alias "bessel") or "bessel_approx" for N-body forces on the gas [default = smoothing]
 
 MassAccretionRadius: 0.3 # Radius from which planets accrete mass in hill radii
 

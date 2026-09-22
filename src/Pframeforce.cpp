@@ -160,17 +160,42 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
        	        		smooth_factor_klahr;
        	        	break;
        	            }
-       	            case parameters::body_force_bessel: {
-       	        	// Bessel function formulation
+       	            case parameters::body_force_bessel_exact: {
+       	        	// Exact Bessel function formulation
        	        	const double scale_height = data[t_data::SCALE_HEIGHT](n_rad, n_az);
        	        	const double s_dist = std::sqrt(dist_2);
-       	        	const double X_aux = dist_2 / (4.0 * scale_height * scale_height);
-    
+       	        	const double X_aux = dist_2 / (4.0 * scale_height * scale_height); // c^2
+
        	        	const double bessel_force = constants::G * g_mpl[k] / s_dist *
        	        		std::pow(2.0 / M_PI, 0.5) / scale_height *
        	        		X_aux * std::exp(X_aux) *
        	        		(std::cyl_bessel_kl(1., X_aux) - std::cyl_bessel_kl(0., X_aux));
-    
+
+       	        	accel_cart.x -= dx / s_dist * bessel_force * smooth_factor_klahr;
+       	        	accel_cart.y -= dy / s_dist * bessel_force * smooth_factor_klahr;
+       	        	break;
+       	            }
+       	            case parameters::body_force_bessel_approx: {
+       	        	/* Approximation of the Bessel function formulation
+			 * The use of Bessel functions is expensive. Therefore we use an 
+			 * approximation with a space varying smoothing length.
+			 */
+       	        	const double scale_height = data[t_data::SCALE_HEIGHT](n_rad, n_az);
+       	        	const double s_dist = std::sqrt(dist_2);
+			const double d_norm = s_dist/scale_height;
+			const double beta_sg = 0.06427627;
+			const double q_sg = 1.14735482;
+		        const double eps_p0 = std::pow(M_PI/2.0, 1/6.0);	
+
+			const double svsl = (1 - std::exp(- eps_p0*std::pow(d_norm, 2.0/3.0) 
+						          - beta_sg*std::pow(d_norm, q_sg) ) 
+					    ); 
+
+       	        	const double bessel_force = constants::G * g_mpl[k] / s_dist *
+       	        		std::pow(2.0 / M_PI, 0.5) / scale_height *
+       	        		std::pow(M_PI / 2.0, 0.5) * std::pow(d_norm, 2.0) * 
+       	        		std::pow(std::pow(d_norm, 2.0) + std::pow(svsl, 2.0), 1.5);
+				
        	        	accel_cart.x -= dx / s_dist * bessel_force * smooth_factor_klahr;
        	        	accel_cart.y -= dy / s_dist * bessel_force * smooth_factor_klahr;
        	        	break;

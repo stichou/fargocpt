@@ -94,9 +94,9 @@ BodyForceFromPotential:
   type: bool
   unitsupport: false
 BodyForceMethod:
-  choices: smoothing, bessel, bessel_approx
+  choices: smoothing, bessel_exact, bessel_approx
   default: smoothing
-  description: Method for the Nbody force onto the gas when BodyForceFromPotential is false. 'smoothing' uses the standard smoothing length approach. 'bessel' uses the exact Bessel function formulation. 'bessel_approx' uses an approximation of the Bessel functions with a space varying smoothing length, which is much faster.
+  description: Method for the Nbody force onto the gas when BodyForceFromPotential is false. 'smoothing' uses the standard smoothing length approach. 'bessel_exact' uses the exact Bessel function formulation. 'bessel_approx' uses an approximation of the Bessel functions with a space varying smoothing length, which is much faster.
   type: string
   unitsupport: false
 CFL:

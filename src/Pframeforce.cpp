@@ -126,6 +126,8 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 		const double dx = x - g_xpl[k];
 		const double dy = y - g_ypl[k];
 		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
+		const double s_dist = std::sqrt(dist_2);
+	        double force_norm;
 
 		// Compute smooth and smooth_factor_klahr (common to all methods)
 		const double smooth = compute_smoothing(data, n_rad, n_az, k);
@@ -156,31 +158,23 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 		    const double dist_sm = std::sqrt(dist_2_sm);
 		    const double inv_dist_3_sm = 1.0 / (dist_sm * dist_2_sm);
 
-		    // direct term from planet (smoothing method)
-		    accel_cart.x -= dx * constants::G * g_mpl[k] *
-				     inv_dist_3_sm * smooth_factor_klahr;
-		    accel_cart.y -= dy * constants::G * g_mpl[k] *
-				     inv_dist_3_sm * smooth_factor_klahr;
+		    force_norm = constants::G * g_mpl[k] * 
+		                 s_dist * inv_dist_3_sm; 
 		    break;
 		}
 		case parameters::body_force_bessel_exact: {
 		    // Exact Bessel function formulation
 		    const double scale_height =
 			data[t_data::SCALE_HEIGHT](n_rad, n_az);
-		    const double s_dist = std::sqrt(dist_2);
 		    const double X_aux =
 			dist_2 / (4.0 * scale_height * scale_height); // c^2
 
-		    const double bessel_force = constants::G * g_mpl[k] / s_dist *
-						 std::pow(2.0 / M_PI, 0.5) /
-						 scale_height * X_aux * std::exp(X_aux) *
-						 (std::cyl_bessel_kl(1., X_aux) -
-						  std::cyl_bessel_kl(0., X_aux));
+		    force_norm = constants::G * g_mpl[k] / s_dist / scale_height *
+		                 std::pow(2.0 / M_PI, 0.5) *
+		                 X_aux * std::exp(X_aux) *
+		                 (std::cyl_bessel_kl(1., X_aux) -
+		                  std::cyl_bessel_kl(0., X_aux));
 
-		    accel_cart.x -=
-			dx / s_dist * bessel_force * smooth_factor_klahr;
-		    accel_cart.y -=
-			dy / s_dist * bessel_force * smooth_factor_klahr;
 		    break;
 		}
 		case parameters::body_force_bessel_approx: {
@@ -191,7 +185,6 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 		     */
 		    const double scale_height =
 			data[t_data::SCALE_HEIGHT](n_rad, n_az);
-		    const double s_dist = std::sqrt(dist_2);
 		    const double d_norm = s_dist / scale_height;
 		    const double beta_sg = 0.06427627;
 		    const double q_sg = 1.14735482;
@@ -202,23 +195,21 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 							  beta_sg *
 							    std::pow(d_norm, q_sg)));
 
-		    const double bessel_force = constants::G * g_mpl[k] /
-						 s_dist *
-						 std::pow(2.0 / M_PI, 0.5) /
-						 scale_height *
-						 std::pow(M_PI / 2.0, 0.5) *
-						 std::pow(d_norm, 2.0) *
-						 std::pow(std::pow(d_norm, 2.0) +
-							    std::pow(svsl, 2.0),
-							1.5);
-
-		    accel_cart.x -=
-			dx / s_dist * bessel_force * smooth_factor_klahr;
-		    accel_cart.y -=
-			dy / s_dist * bessel_force * smooth_factor_klahr;
+		    force_norm = constants::G * g_mpl[k] / s_dist / scale_height *
+		                 //std::pow(2.0 / M_PI, 0.5) *
+		                 //std::pow(M_PI / 2.0, 0.5) *
+		                 std::pow(d_norm, 2.0) *
+		                 std::pow(std::pow(d_norm, 2.0) +
+		    	              std::pow(svsl, 2.0),
+		    	         -1.5);
 		    break;
 		}
 		}
+
+		accel_cart.x -=
+		    dx / s_dist * force_norm * smooth_factor_klahr;
+		accel_cart.y -=
+		    dy / s_dist * force_norm * smooth_factor_klahr;
 	    }
 
 	    //  x/r = cos(phi)

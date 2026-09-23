@@ -787,8 +787,10 @@ void read(const std::string &filename, t_data &data)
 			      "Body force on gas computed via force.\n");
     }
 
-    // Body force calculation method (only applies when body_force_from_potential is false)
-    if (!body_force_from_potential) {
+    // Body force calculation method, applies to the force of the Nbody
+    // onto the gas (when body_force_from_potential is false) and to the
+    // force of the disk onto the Nbody (when disk feedback is enabled)
+    {
 	const std::string bfmethod = config::cfg.get_lowercase("BodyForceMethod", "smoothing");
 	if (bfmethod == "smoothing") {
 		body_force_method = body_force_smoothing;

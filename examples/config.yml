@@ -107,7 +107,9 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 ThicknessSmoothing: 0.6   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: 0.6   # Softening parameter for SG [default = ThicknessSmoothing]
 
-## Body force calculation method (only applies when BodyForceFromPotential is false)
+## Body force calculation method (applies to the Nbody force on the gas
+## when BodyForceFromPotential is false, and to the disk force on the
+## Nbody when DiskFeedback is enabled)
 BodyForceFromPotential: no
 BodyForceMethod: smoothing   # Choose between "smoothing", "bessel_exact" or "bessel_approx" for N-body forces on the gas [default = smoothing]
 

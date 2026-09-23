@@ -127,7 +127,6 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 		const double dy = y - g_ypl[k];
 		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
 		const double s_dist = std::sqrt(dist_2);
-	        double force_norm;
 
 		// Compute smooth and smooth_factor_klahr (common to all methods)
 		const double smooth = compute_smoothing(data, n_rad, n_az, k);
@@ -152,59 +151,8 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 
 		// Choose between smoothing and bessel methods for force
 		// calculation
-		switch (parameters::body_force_method) {
-		case parameters::body_force_smoothing: {
-		    const double dist_2_sm = dist_2 + std::pow(smooth, 2);
-		    const double dist_sm = std::sqrt(dist_2_sm);
-		    const double inv_dist_3_sm = 1.0 / (dist_sm * dist_2_sm);
-
-		    force_norm = constants::G * g_mpl[k] * 
-		                 s_dist * inv_dist_3_sm; 
-		    break;
-		}
-		case parameters::body_force_bessel_exact: {
-		    // Exact Bessel function formulation
-		    const double scale_height =
-			data[t_data::SCALE_HEIGHT](n_rad, n_az);
-		    const double X_aux =
-			dist_2 / (4.0 * scale_height * scale_height); // c^2
-
-		    force_norm = constants::G * g_mpl[k] / s_dist / scale_height *
-		                 std::pow(2.0 / M_PI, 0.5) *
-		                 X_aux * std::exp(X_aux) *
-		                 (std::cyl_bessel_kl(1., X_aux) -
-		                  std::cyl_bessel_kl(0., X_aux));
-
-		    break;
-		}
-		case parameters::body_force_bessel_approx: {
-		    /* Approximation of the Bessel function formulation
-		     * The use of Bessel functions is expensive. Therefore we
-		     * use an approximation with a space varying smoothing
-		     * length.
-		     */
-		    const double scale_height =
-			data[t_data::SCALE_HEIGHT](n_rad, n_az);
-		    const double d_norm = s_dist / scale_height;
-		    const double beta_sg = 0.06427627;
-		    const double q_sg = 1.14735482;
-		    const double eps_p0 = std::pow(M_PI / 2.0, 1 / 6.0);
-
-		    const double svsl = (1 - std::exp(-eps_p0 *
-							  std::pow(d_norm, 2.0 / 3.0) -
-							  beta_sg *
-							    std::pow(d_norm, q_sg)));
-
-		    force_norm = constants::G * g_mpl[k] / s_dist / scale_height *
-		                 //std::pow(2.0 / M_PI, 0.5) *
-		                 //std::pow(M_PI / 2.0, 0.5) *
-		                 std::pow(d_norm, 2.0) *
-		                 std::pow(std::pow(d_norm, 2.0) +
-		    	              std::pow(svsl, 2.0),
-		    	         -1.5);
-		    break;
-		}
-		}
+		const double force_norm = compute_body_force_norm(
+		    data, n_rad, n_az, k, g_mpl[k], dist_2, s_dist);
 
 		accel_cart.x -=
 		    dx / s_dist * force_norm * smooth_factor_klahr;

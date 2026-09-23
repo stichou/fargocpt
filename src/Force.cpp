@@ -159,6 +159,24 @@ double compute_body_force_norm(t_data &data, const int n_radial,
 		return 0.0;
 	}
 
+	// scale height entering the bessel formulations: the cell scale
+	// height, or the isothermal scale height evaluated at the planet
+	// location for compatibility with literature results
+	double scale_height;
+	if (parameters::compatibility_smoothing_planetloc) {
+		const t_planet &planet =
+		    data.get_planetary_system().get_planet(nb);
+		const double a = planet.get_r();
+		const double h0 = parameters::aspectratio_ref;
+		const double beta = parameters::flaring_index;
+		scale_height = h0 * std::pow(a, 1 + beta);
+	} else {
+		scale_height = data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
+	}
+	if (scale_height <= 0.0) {
+		return 0.0;
+	}
+
 	switch (parameters::body_force_method) {
 	case parameters::body_force_smoothing: {
 		const double smooth =
@@ -170,8 +188,6 @@ double compute_body_force_norm(t_data &data, const int n_radial,
 		break;
 	}
 	case parameters::body_force_bessel_exact: {
-		const double scale_height =
-		    data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
 		const double X_aux =
 		    dist_2 / (4.0 * scale_height * scale_height); // c^2
 
@@ -198,8 +214,6 @@ double compute_body_force_norm(t_data &data, const int n_radial,
 		 * use an approximation with a space varying smoothing
 		 * length.
 		 */
-		const double scale_height =
-		    data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
 		const double d_norm = s_dist / scale_height;
 		const double beta_sg = 0.06427627;
 		const double q_sg = 1.14735482;

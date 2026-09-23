@@ -1494,6 +1494,18 @@ WriteSGAccelRad:
   description: Write 2D array of the radial component of the gravitational stress.
   type: bool
   unitsupport: false
+WriteAccPlanetRad:
+  choices: yes, no
+  default: false
+  description: Write 2D array of the radial component of the planet acceleration on gas. Only written if BodyForceFromPotential is 'no'.
+  type: bool
+  unitsupport: false
+WriteAccPlanetAzi:
+  choices: yes, no
+  default: false
+  description: Write 2D array of the azimuthal component of the planet acceleration on gas. Only written if BodyForceFromPotential is 'no'.
+  type: bool
+  unitsupport: false
 WriteScaleHeight:
   choices: yes, no
   default: false

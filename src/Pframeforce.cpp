@@ -105,6 +105,8 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 
     double *acc_r = data[t_data::ACCEL_RADIAL].Field;
     double *acc_az = data[t_data::ACCEL_AZIMUTHAL].Field;
+    double *acc_planet_r = data[t_data::PLANET_ACCEL_RAD].Field;
+    double *acc_planet_az = data[t_data::PLANET_ACCEL_AZI].Field;
 
     const unsigned int N_az_max =
 	data[t_data::ACCEL_RADIAL].get_size_azimuthal();
@@ -167,6 +169,8 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 
 	    acc_r[cell_id] = accel_r;
 	    acc_az[cell_id] = accel_az;
+	    acc_planet_r[cell_id] = accel_r;
+	    acc_planet_az[cell_id] = accel_az;
 	}
     }
 }

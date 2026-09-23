@@ -67,6 +67,16 @@ t_data::t_data()
     m_polargrids[SG_ACCEL_AZI].set_name("a_sg_azi");
     m_polargrids[SG_ACCEL_AZI].set_unit(units::acceleration);
 
+    // planet accel is cell-centered
+    m_polargrids[PLANET_ACCEL_RAD].set_vector(false);
+    m_polargrids[PLANET_ACCEL_RAD].set_name("a_planet_rad");
+    m_polargrids[PLANET_ACCEL_RAD].set_unit(units::acceleration);
+
+    // planet accel is cell-centered
+    m_polargrids[PLANET_ACCEL_AZI].set_vector(false);
+    m_polargrids[PLANET_ACCEL_AZI].set_name("a_planet_azi");
+    m_polargrids[PLANET_ACCEL_AZI].set_unit(units::acceleration);
+
     m_polargrids[TOOMRE].set_scalar(true);
     m_polargrids[TOOMRE].set_name("Toomre");
     m_polargrids[TOOMRE].set_do_before_write(&quantities::calculate_toomre);

@@ -263,3 +263,5 @@ WriteTorques: No   # Calculate and write torques acting in planet/star
 WriteVerticalOpticalDepth: No   # Write optical depth in vertical direction (tau_eff by Hubeny [1990])
 WriteSGAccelRad: No # Write radial SG acceleration.
 WriteSGAccelAzi: No # Write azimuthal SG acceleration.
+WriteAccPlanetRad: No # Write radial planet acceleration on gas (only if BodyForceFromPotential: No).
+WriteAccPlanetAzi: No # Write azimuthal planet acceleration on gas (only if BodyForceFromPotential: No).

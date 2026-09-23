@@ -30,6 +30,8 @@ class t_data
 	ACCEL_AZIMUTHAL,      // gas acceleration in phi direction
 	SG_ACCEL_RAD,	      // gas accerleration in r direction due to self-gravity, cell-centered
 	SG_ACCEL_AZI,      // gas acceleration in phi direction due to self-gravity, cell-centered
+	PLANET_ACCEL_RAD, // gas acceleration in r direction due to planets, cell-centered
+	PLANET_ACCEL_AZI, // gas acceleration in phi direction due to planets, cell-centered
 	TOOMRE,		      // Toomre parameter Q
 	ECCENTRICITY_X,	      // disk eccentricity vector component
 	ECCENTRICITY_Y,	      // disk eccentricity vector component

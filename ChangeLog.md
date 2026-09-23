@@ -10,6 +10,7 @@ Syntax of the versions are: major, minor, revision
 - revision: bug fixes
 
 ## Version 1.4.2
+- planet acceleration on gas can now be written out to the snapshots using `WriteAccPlanetRad` and `WriteAccPlanetAzi` parameters, output only if `BodyForceFromPotential` is `no`
 - fix bug with SG scaleheight adjustment, was applied even without SG on
 
 ## Version 1.4.1

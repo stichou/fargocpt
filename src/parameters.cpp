@@ -321,6 +321,32 @@ static void read_output_config(t_data &data) {
 	data[t_data::SG_ACCEL_AZI].set_write(
 	config::cfg.get_flag("WriteSGAccelAzi", false),do_write_1D);
 
+    {
+	const bool body_force_from_potential =
+	    config::cfg.get_flag("BodyForceFromPotential", "yes");
+	const bool write_acc_planet_rad =
+	    config::cfg.get_flag("WriteAccPlanetRad", false) &&
+	    !body_force_from_potential;
+	const bool write_acc_planet_azi =
+	    config::cfg.get_flag("WriteAccPlanetAzi", false) &&
+	    !body_force_from_potential;
+
+	if ((config::cfg.get_flag("WriteAccPlanetRad", false) ||
+	     config::cfg.get_flag("WriteAccPlanetAzi", false)) &&
+	    body_force_from_potential) {
+	    logging::print_master(LOG_WARNING
+				  "WARNING: WriteAccPlanetRad or WriteAccPlanetAzi requested, "
+				  "but BodyForceFromPotential is 'yes'. "
+				  "Planet acceleration on gas is only computed when "
+				  "BodyForceFromPotential is 'no'. Output disabled.\n");
+	}
+
+	data[t_data::PLANET_ACCEL_RAD].set_write(
+	    write_acc_planet_rad, do_write_1D);
+	data[t_data::PLANET_ACCEL_AZI].set_write(
+	    write_acc_planet_azi, do_write_1D);
+    }
+
     write_torques = config::cfg.get_flag("WriteTorques", false);
 
     write_disk_quantities =

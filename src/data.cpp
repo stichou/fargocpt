@@ -206,6 +206,10 @@ t_data::t_data()
 
     m_polargrids[DRHO_DR].set_scalar(true);
     m_polargrids[DRHO_DR].set_name("DRHO_DR");
+    m_polargrids[ENTROPY].set_scalar(true);
+    m_polargrids[ENTROPY].set_name("entropy");
+    m_polargrids[ENTROPY_DIFF].set_scalar(true);
+    m_polargrids[ENTROPY_DIFF].set_name("entropy_diff");
 
     // tau_r_r is cell centered
     m_polargrids[TAU_R_R].set_scalar(true);

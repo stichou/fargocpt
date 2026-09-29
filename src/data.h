@@ -80,7 +80,8 @@ class t_data
 	WORKER_SCALAR_ARRAY,
 	GAS_DIFFUSION_COEFFICIENT,
 	DRHO_DR,
-
+	ENTROPY, // log10(pressure / sigma^AdiabaticIndex)
+	ENTROPY_DIFF, // difference between transported and recomputed entropy
 	// number of t_polargrid_types
 	N_POLARGRID_TYPES
     };

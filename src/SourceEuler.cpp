@@ -1384,6 +1384,24 @@ void compute_pressure(t_data &data)
     }
 }
 
+void compute_entropy(t_data &data)
+{
+	const unsigned int Nr = data[t_data::ENTROPY].get_size_radial();
+	const unsigned int Nphi = data[t_data::ENTROPY].get_size_azimuthal();
+	if (!parameters::Adiabatic) {
+		return;
+	}
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	    for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		const double sigma = data[t_data::SIGMA](nr, naz);
+		data[t_data::ENTROPY](nr, naz) =
+		    std::log10(data[t_data::PRESSURE](nr, naz) /
+			       std::pow(sigma, parameters::ADIABATICINDEX));
+	    }
+	}
+}
+
 void compute_temperature(t_data &data)
 {
 	auto &T = data[t_data::TEMPERATURE];

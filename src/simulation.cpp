@@ -211,6 +211,8 @@ static void step_Euler(t_data &data, const double dt) {
 	/* Continue with hydro simulation */
 	if (parameters::calculate_disk) {
 		boundary_conditions::apply_boundary_condition(data, time, 0.0, false);
+		compute_pressure(data);
+		compute_entropy(data);
 
 		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
 				&data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
@@ -339,6 +341,8 @@ static void step_Euler(t_data &data, const double dt) {
 
 		//////////////// Gas drift 1/1 /////////////////////
 		boundary_conditions::apply_boundary_condition(data, start_time, 0.0, false);
+		compute_pressure(data);
+		compute_entropy(data);
 
 		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
 			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],

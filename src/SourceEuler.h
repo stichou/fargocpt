@@ -26,6 +26,7 @@ void compute_scale_height_old(t_data &data);
 void compute_scale_height_nbody(t_data &data, const double current_time);
 void compute_scale_height_center_of_mass(t_data &data);
 void compute_pressure(t_data &data);
+void compute_entropy(t_data &data);
 void compute_temperature(t_data &data);
 
 void SetTemperatureFloorCeilValues(t_data &data, std::string filename,

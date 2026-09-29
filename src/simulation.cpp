@@ -218,7 +218,7 @@ static void step_Euler(t_data &data, const double dt) {
 		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
 				&data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
 				&data[t_data::ENTROPY], dt);
-		compute_entropy_diff(data);
+		convert_entropy_to_intensive(data);
 	}
 
 	/** Planets' positions and velocities are updated from gravitational
@@ -267,6 +267,7 @@ static void step_Euler(t_data &data, const double dt) {
 	    }
 	    // this must be done after CommunicateBoundaries
         recalculate_derived_disk_quantities(data, time);
+	compute_entropy_diff(data);
 	}
 }
 
@@ -350,7 +351,7 @@ static void step_Euler(t_data &data, const double dt) {
 		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
 			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
 			  &data[t_data::ENTROPY], step_dt);
-		compute_entropy_diff(data);
+		convert_entropy_to_intensive(data);
 		//////////////// END Gas drift 1/1   /////////////////////
 
 	}
@@ -462,6 +463,7 @@ static void step_Euler(t_data &data, const double dt) {
 
 		// this must be done after CommunicateBoundaries
 		recalculate_derived_disk_quantities(data, end_time);
+		compute_entropy_diff(data);
 
 	}
 }

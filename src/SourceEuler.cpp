@@ -1422,13 +1422,29 @@ void convert_entropy_to_extensive(t_data &data)
 	}
 }
 
+void convert_entropy_to_intensive(t_data &data)
+{
+	if (!parameters::Adiabatic) {
+		return;
+	}
+	t_polargrid &entropy = data[t_data::ENTROPY];
+	t_polargrid &sigma = data[t_data::SIGMA];
+	const unsigned int Nr = entropy.get_size_radial();
+	const unsigned int Nphi = entropy.get_size_azimuthal();
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	    for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		entropy(nr, naz) /= sigma(nr, naz);
+	    }
+	}
+}
+
 void compute_entropy_diff(t_data &data)
 {
 	if (!parameters::Adiabatic) {
 		return;
 	}
-	// pressure from the transported energy, consistent with the
-	// transported sigma
+	// pressure from the energy at the end of the time step
 	compute_pressure(data);
 	t_polargrid &entropy = data[t_data::ENTROPY];
 	t_polargrid &entropy_diff = data[t_data::ENTROPY_DIFF];
@@ -1439,14 +1455,11 @@ void compute_entropy_diff(t_data &data)
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 0; nr < Nr; ++nr) {
 	    for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		const double sigma_transport = sigma(nr, naz);
-		const double entropy_transported =
-		    entropy(nr, naz) / sigma_transport;
+		const double entropy_transported = entropy(nr, naz);
 		const double entropy_new =
 		    std::log10(pressure(nr, naz) /
-			       std::pow(sigma_transport,
+			       std::pow(sigma(nr, naz),
 					parameters::ADIABATICINDEX));
-		entropy(nr, naz) = entropy_transported;
 		entropy_diff(nr, naz) = entropy_transported - entropy_new;
 	    }
 	}

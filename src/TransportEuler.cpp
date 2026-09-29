@@ -110,13 +110,14 @@ void FreeTransport()
 }
 
 void Transport(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
-		   PolarGrid *VAzimuthal, PolarGrid *Energy, const double dt)
+		   PolarGrid *VAzimuthal, PolarGrid *Energy, PolarGrid *Entropy,
+		   const double dt)
 {
     compute_momenta_from_velocities(*Density, *VRadial, *VAzimuthal);
 
     /* No-Alternate Directionnal Splitting */
-    OneWindRad(data, Density, VRadial, Energy, dt);
-    OneWindTheta(data, Density, VAzimuthal, Energy, dt);
+    OneWindRad(data, Density, VRadial, Energy, Entropy, dt);
+    OneWindTheta(data, Density, VAzimuthal, Energy, Entropy, dt);
 
     compute_velocities_from_momenta(*Density, *VRadial, *VAzimuthal);
 
@@ -136,7 +137,7 @@ void Transport(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
 }
 
 void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
-		PolarGrid *Energy, double dt)
+		PolarGrid *Energy, PolarGrid *Entropy, double dt)
 {
     compute_star_radial(Density, VRadial, DensityStar, dt);
 
@@ -156,6 +157,7 @@ void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
 
     if (parameters::Adiabatic) {
 	VanLeerRadial(data, VRadial, Energy, dt);
+	VanLeerRadial(data, VRadial, Entropy, dt);
     }
 
     VanLeerRadial(data, VRadial, Density, dt); /* MUST be the last line */
@@ -268,29 +270,32 @@ void AdvectSHIFT(t_polargrid &array)
 }
 
 void OneWindTheta(t_data &data, PolarGrid *Density, PolarGrid *VAzimuthal,
-		  PolarGrid *Energy, double dt)
+		  PolarGrid *Energy, PolarGrid *Entropy, double dt)
 {
     compute_average_azimuthal_velocity(*VAzimuthal);
     compute_residual_velocity(*VAzimuthal);
     ComputeConstantResidual(
 	VAzimuthal, dt); /* Constant residual is in VAzimuthal from now on */
     UniformTransport = NO;
-    QuantitiesAdvection(data, Density, &v_azimuthal_res, Energy, dt);
+    QuantitiesAdvection(data, Density, &v_azimuthal_res, Energy, Entropy, dt);
     UniformTransport = YES;
-    QuantitiesAdvection(data, Density, VAzimuthal, Energy, dt);
+    QuantitiesAdvection(data, Density, VAzimuthal, Energy, Entropy, dt);
     AdvectSHIFT(radial_momentum_plus);
     AdvectSHIFT(radial_momentum_minus);
     AdvectSHIFT(angular_momentum_plus);
     AdvectSHIFT(angular_momentum_minus);
-    if (parameters::Adiabatic)
+    if (parameters::Adiabatic) {
 	AdvectSHIFT(*Energy);
+	AdvectSHIFT(*Entropy);
+    }
     AdvectSHIFT(*Density);
 }
 
 /* End of new specific procedures to the fast algorithm */
 
 void QuantitiesAdvection(t_data &data, PolarGrid *Density,
-			 PolarGrid *VAzimuthal, PolarGrid *Energy, double dt)
+			 PolarGrid *VAzimuthal, PolarGrid *Energy,
+			 PolarGrid *Entropy, double dt)
 {
     ComputeStarTheta(Density, VAzimuthal, DensityStar, dt);
     copy_polargrid(data[t_data::DENSITY_INT], *Density);
@@ -298,8 +303,10 @@ void QuantitiesAdvection(t_data &data, PolarGrid *Density,
     VanLeerTheta(data, VAzimuthal, &radial_momentum_minus, dt);
     VanLeerTheta(data, VAzimuthal, &angular_momentum_plus, dt);
     VanLeerTheta(data, VAzimuthal, &angular_momentum_minus, dt);
-    if (parameters::Adiabatic)
+    if (parameters::Adiabatic) {
 	VanLeerTheta(data, VAzimuthal, Energy, dt);
+	VanLeerTheta(data, VAzimuthal, Entropy, dt);
+    }
     VanLeerTheta(data, VAzimuthal, Density, dt); /* MUST be the last line */
 }
 

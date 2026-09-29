@@ -216,7 +216,7 @@ static void step_Euler(t_data &data, const double dt) {
 
 		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
 				&data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
-				dt);
+				&data[t_data::ENTROPY], dt);
 	}
 
 	/** Planets' positions and velocities are updated from gravitational
@@ -346,7 +346,7 @@ static void step_Euler(t_data &data, const double dt) {
 
 		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
 			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
-			  step_dt);
+			  &data[t_data::ENTROPY], step_dt);
 		//////////////// END Gas drift 1/1   /////////////////////
 
 	}

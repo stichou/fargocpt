@@ -3,9 +3,10 @@
 #include "data.h"
 
 void Transport(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
-		   PolarGrid *VAzimuthal, PolarGrid *Energy, const double dt);
+		   PolarGrid *VAzimuthal, PolarGrid *Energy, PolarGrid *Entropy,
+		   const double dt);
 void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
-		PolarGrid *Energy, double dt);
+		PolarGrid *Energy, PolarGrid *Entropy, double dt);
 void ComputeThetaElongations(PolarGrid *VAzimuthal, double dt);
 
 void compute_average_azimuthal_velocity(t_polargrid &v_azimuthal);
@@ -14,9 +15,10 @@ void compute_residual_velocity(t_polargrid &v_azimuthal);
 void ComputeConstantResidual(PolarGrid *VAzimuthal, double dt);
 void AdvectSHIFT(t_polargrid &array);
 void OneWindTheta(t_data &data, PolarGrid *Density, PolarGrid *VAzimuthal,
-		  PolarGrid *Energy, double dt);
+		  PolarGrid *Energy, PolarGrid *Entropy, double dt);
 void QuantitiesAdvection(t_data &data, PolarGrid *Density,
-			 PolarGrid *VAzimuthal, PolarGrid *Energy, double dt);
+			 PolarGrid *VAzimuthal, PolarGrid *Energy,
+			 PolarGrid *Entropy, double dt);
 void InitTransport();
 void FreeTransport();
 void compute_star_radial(t_polargrid *Qbase, t_polargrid *VRadial,

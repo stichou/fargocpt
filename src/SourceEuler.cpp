@@ -1386,18 +1386,21 @@ void compute_pressure(t_data &data)
 
 void compute_entropy(t_data &data)
 {
-	const unsigned int Nr = data[t_data::ENTROPY].get_size_radial();
-	const unsigned int Nphi = data[t_data::ENTROPY].get_size_azimuthal();
 	if (!parameters::Adiabatic) {
 		return;
 	}
+	t_polargrid &entropy = data[t_data::ENTROPY];
+	t_polargrid &sigma = data[t_data::SIGMA];
+	t_polargrid &pressure = data[t_data::PRESSURE];
+	const unsigned int Nr = entropy.get_size_radial();
+	const unsigned int Nphi = entropy.get_size_azimuthal();
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 0; nr < Nr; ++nr) {
 	    for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		const double sigma = data[t_data::SIGMA](nr, naz);
-		data[t_data::ENTROPY](nr, naz) =
-		    std::log10(data[t_data::PRESSURE](nr, naz) /
-			       std::pow(sigma, parameters::ADIABATICINDEX));
+		entropy(nr, naz) =
+		    std::log10(pressure(nr, naz) /
+			       std::pow(sigma(nr, naz),
+					parameters::ADIABATICINDEX));
 	    }
 	}
 }
@@ -1407,14 +1410,14 @@ void convert_entropy_to_extensive(t_data &data)
 	if (!parameters::Adiabatic) {
 		return;
 	}
-	t_polargrid &S = data[t_data::ENTROPY];
-	t_polargrid &Sig = data[t_data::SIGMA];
-	const unsigned int Nr = S.get_size_radial();
-	const unsigned int Nphi = S.get_size_azimuthal();
+	t_polargrid &entropy = data[t_data::ENTROPY];
+	t_polargrid &sigma = data[t_data::SIGMA];
+	const unsigned int Nr = entropy.get_size_radial();
+	const unsigned int Nphi = entropy.get_size_azimuthal();
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 0; nr < Nr; ++nr) {
 	    for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		S(nr, naz) *= Sig(nr, naz);
+		entropy(nr, naz) *= sigma(nr, naz);
 	    }
 	}
 }
@@ -1427,21 +1430,24 @@ void compute_entropy_diff(t_data &data)
 	// pressure from the transported energy, consistent with the
 	// transported sigma
 	compute_pressure(data);
-	t_polargrid &S = data[t_data::ENTROPY];
-	t_polargrid &Sig = data[t_data::SIGMA];
-	t_polargrid &P = data[t_data::PRESSURE];
-	const unsigned int Nr = S.get_size_radial();
-	const unsigned int Nphi = S.get_size_azimuthal();
+	t_polargrid &entropy = data[t_data::ENTROPY];
+	t_polargrid &entropy_diff = data[t_data::ENTROPY_DIFF];
+	t_polargrid &sigma = data[t_data::SIGMA];
+	t_polargrid &pressure = data[t_data::PRESSURE];
+	const unsigned int Nr = entropy.get_size_radial();
+	const unsigned int Nphi = entropy.get_size_azimuthal();
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 0; nr < Nr; ++nr) {
 	    for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		const double sigma = Sig(nr, naz);
-		const double S_transported = S(nr, naz) / sigma;
-		const double S_new =
-		    std::log10(P(nr, naz) /
-			       std::pow(sigma, parameters::ADIABATICINDEX));
-		S(nr, naz) = S_transported;
-		data[t_data::ENTROPY_DIFF](nr, naz) = S_transported - S_new;
+		const double sigma_transport = sigma(nr, naz);
+		const double entropy_transported =
+		    entropy(nr, naz) / sigma_transport;
+		const double entropy_new =
+		    std::log10(pressure(nr, naz) /
+			       std::pow(sigma_transport,
+					parameters::ADIABATICINDEX));
+		entropy(nr, naz) = entropy_transported;
+		entropy_diff(nr, naz) = entropy_transported - entropy_new;
 	    }
 	}
 }

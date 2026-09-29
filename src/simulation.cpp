@@ -213,10 +213,12 @@ static void step_Euler(t_data &data, const double dt) {
 		boundary_conditions::apply_boundary_condition(data, time, 0.0, false);
 		compute_pressure(data);
 		compute_entropy(data);
+		convert_entropy_to_extensive(data);
 
 		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
 				&data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
 				&data[t_data::ENTROPY], dt);
+		compute_entropy_diff(data);
 	}
 
 	/** Planets' positions and velocities are updated from gravitational
@@ -343,10 +345,12 @@ static void step_Euler(t_data &data, const double dt) {
 		boundary_conditions::apply_boundary_condition(data, start_time, 0.0, false);
 		compute_pressure(data);
 		compute_entropy(data);
+		convert_entropy_to_extensive(data);
 
 		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
 			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
 			  &data[t_data::ENTROPY], step_dt);
+		compute_entropy_diff(data);
 		//////////////// END Gas drift 1/1   /////////////////////
 
 	}

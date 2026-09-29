@@ -213,12 +213,16 @@ static void step_Euler(t_data &data, const double dt) {
 		boundary_conditions::apply_boundary_condition(data, time, 0.0, false);
 		compute_pressure(data);
 		compute_entropy(data);
+		compute_reduced_entropy(data);
 		convert_entropy_to_extensive(data);
+		convert_reduced_entropy_to_extensive(data);
 
 		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
 				&data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
-				&data[t_data::ENTROPY], dt);
+				&data[t_data::ENTROPY],
+				&data[t_data::REDUCED_ENTROPY], dt);
 		convert_entropy_to_intensive(data);
+		convert_reduced_entropy_to_intensive(data);
 	}
 
 	/** Planets' positions and velocities are updated from gravitational
@@ -268,6 +272,7 @@ static void step_Euler(t_data &data, const double dt) {
 	    // this must be done after CommunicateBoundaries
         recalculate_derived_disk_quantities(data, time);
 	compute_entropy_diff(data);
+	compute_energy_variation_transport(data);
 	}
 }
 
@@ -346,12 +351,16 @@ static void step_Euler(t_data &data, const double dt) {
 		boundary_conditions::apply_boundary_condition(data, start_time, 0.0, false);
 		compute_pressure(data);
 		compute_entropy(data);
+		compute_reduced_entropy(data);
 		convert_entropy_to_extensive(data);
+		convert_reduced_entropy_to_extensive(data);
 
 		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
 			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
-			  &data[t_data::ENTROPY], step_dt);
+			  &data[t_data::ENTROPY],
+			  &data[t_data::REDUCED_ENTROPY], step_dt);
 		convert_entropy_to_intensive(data);
+		convert_reduced_entropy_to_intensive(data);
 		//////////////// END Gas drift 1/1   /////////////////////
 
 	}
@@ -464,6 +473,7 @@ static void step_Euler(t_data &data, const double dt) {
 		// this must be done after CommunicateBoundaries
 		recalculate_derived_disk_quantities(data, end_time);
 		compute_entropy_diff(data);
+		compute_energy_variation_transport(data);
 
 	}
 }

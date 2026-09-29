@@ -29,6 +29,10 @@ void compute_pressure(t_data &data);
 void compute_entropy(t_data &data);
 void convert_entropy_to_extensive(t_data &data);
 void convert_entropy_to_intensive(t_data &data);
+void compute_reduced_entropy(t_data &data);
+void convert_reduced_entropy_to_extensive(t_data &data);
+void convert_reduced_entropy_to_intensive(t_data &data);
+void compute_energy_variation_transport(t_data &data);
 void compute_entropy_diff(t_data &data);
 void compute_temperature(t_data &data);
 

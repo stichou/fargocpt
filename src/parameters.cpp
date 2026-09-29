@@ -261,6 +261,8 @@ static void read_output_config(t_data &data) {
 	config::cfg.get_flag("WriteToomre", false), do_write_1D);
     data[t_data::ENTROPY].set_write(	config::cfg.get_flag("WriteEntropy", false),	do_write_1D);
     data[t_data::ENTROPY_DIFF].set_write(	config::cfg.get_flag("WriteEntropyDiff", false),	do_write_1D);
+    data[t_data::REDUCED_ENTROPY].set_write(	config::cfg.get_flag("WriteReducedEntropy", false),	do_write_1D);
+    data[t_data::ENERGY_VARIATION_TRANSPORT].set_write(	config::cfg.get_flag("WriteEnergyVariationTransport", false),	do_write_1D);
     data[t_data::ECCENTRICITY_X].set_write(
 	config::cfg.get_flag("WriteEccentricity", false), do_write_1D);
     data[t_data::ECCENTRICITY_Y].set_write(

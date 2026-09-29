@@ -210,6 +210,11 @@ t_data::t_data()
     m_polargrids[ENTROPY].set_name("entropy");
     m_polargrids[ENTROPY_DIFF].set_scalar(true);
     m_polargrids[ENTROPY_DIFF].set_name("entropy_diff");
+    m_polargrids[REDUCED_ENTROPY].set_scalar(true);
+    m_polargrids[REDUCED_ENTROPY].set_name("reduced_entropy");
+    m_polargrids[ENERGY_VARIATION_TRANSPORT].set_scalar(true);
+    m_polargrids[ENERGY_VARIATION_TRANSPORT].set_name("energy_variation_transport");
+    m_polargrids[ENERGY_VARIATION_TRANSPORT].set_unit(units::energy_density);
 
     // tau_r_r is cell centered
     m_polargrids[TAU_R_R].set_scalar(true);

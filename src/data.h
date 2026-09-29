@@ -82,6 +82,8 @@ class t_data
 	DRHO_DR,
 	ENTROPY, // log10(pressure / sigma^AdiabaticIndex)
 	ENTROPY_DIFF, // difference between transported and recomputed entropy
+	REDUCED_ENTROPY, // pressure / sigma^AdiabaticIndex
+	ENERGY_VARIATION_TRANSPORT, // (pressure - pressure_advected)/(AdiabaticIndex - 1)
 	// number of t_polargrid_types
 	N_POLARGRID_TYPES
     };

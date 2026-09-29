@@ -1439,6 +1439,87 @@ void convert_entropy_to_intensive(t_data &data)
 	}
 }
 
+void compute_reduced_entropy(t_data &data)
+{
+	if (!parameters::Adiabatic) {
+		return;
+	}
+	t_polargrid &reduced_entropy = data[t_data::REDUCED_ENTROPY];
+	t_polargrid &sigma = data[t_data::SIGMA];
+	t_polargrid &pressure = data[t_data::PRESSURE];
+	const unsigned int Nr = reduced_entropy.get_size_radial();
+	const unsigned int Nphi = reduced_entropy.get_size_azimuthal();
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	    for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		reduced_entropy(nr, naz) =
+		    pressure(nr, naz) /
+		    std::pow(sigma(nr, naz), parameters::ADIABATICINDEX);
+	    }
+	}
+}
+
+void convert_reduced_entropy_to_extensive(t_data &data)
+{
+	if (!parameters::Adiabatic) {
+		return;
+	}
+	t_polargrid &reduced_entropy = data[t_data::REDUCED_ENTROPY];
+	t_polargrid &sigma = data[t_data::SIGMA];
+	const unsigned int Nr = reduced_entropy.get_size_radial();
+	const unsigned int Nphi = reduced_entropy.get_size_azimuthal();
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	    for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		reduced_entropy(nr, naz) *= sigma(nr, naz);
+	    }
+	}
+}
+
+void convert_reduced_entropy_to_intensive(t_data &data)
+{
+	if (!parameters::Adiabatic) {
+		return;
+	}
+	t_polargrid &reduced_entropy = data[t_data::REDUCED_ENTROPY];
+	t_polargrid &sigma = data[t_data::SIGMA];
+	const unsigned int Nr = reduced_entropy.get_size_radial();
+	const unsigned int Nphi = reduced_entropy.get_size_azimuthal();
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	    for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		reduced_entropy(nr, naz) /= sigma(nr, naz);
+	    }
+	}
+}
+
+void compute_energy_variation_transport(t_data &data)
+{
+	if (!parameters::Adiabatic) {
+		return;
+	}
+	// pressure from the energy at the end of the time step
+	compute_pressure(data);
+	t_polargrid &reduced_entropy = data[t_data::REDUCED_ENTROPY];
+	t_polargrid &energy_variation_transport =
+	    data[t_data::ENERGY_VARIATION_TRANSPORT];
+	t_polargrid &sigma = data[t_data::SIGMA];
+	t_polargrid &pressure = data[t_data::PRESSURE];
+	const unsigned int Nr = reduced_entropy.get_size_radial();
+	const unsigned int Nphi = reduced_entropy.get_size_azimuthal();
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	    for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		const double pressure_advected =
+		    reduced_entropy(nr, naz) *
+		    std::pow(sigma(nr, naz), parameters::ADIABATICINDEX);
+		energy_variation_transport(nr, naz) =
+		    (pressure(nr, naz) - pressure_advected) /
+		    (parameters::ADIABATICINDEX - 1.0);
+	    }
+	}
+}
+
 void compute_entropy_diff(t_data &data)
 {
 	if (!parameters::Adiabatic) {

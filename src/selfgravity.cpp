@@ -302,7 +302,9 @@ void init(t_data &data)
 
 void compute(t_data &data, double dt, bool update)
 {
-    update_kernel(data);
+    const int sg_kernel_update = parameters::self_gravity_kernel_update;
+
+    if (sg_kernel_update) update_kernel(data);
 
     auto &density = data[t_data::SIGMA];
     compute_FFT_density(density);

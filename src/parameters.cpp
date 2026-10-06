@@ -153,6 +153,7 @@ bool v_azimuthal_with_quadropole_support;
 
 bool self_gravity;
 t_sg self_gravity_mode;
+bool self_gravity_kernel_update;
 unsigned int self_gravity_steps_between_kernel_update;
 double self_gravity_aspectratio_change_threshold;
 
@@ -683,11 +684,20 @@ void read(const std::string &filename, t_data &data)
 		die("Configuration error.");
 	}
 
+	self_gravity_kernel_update = config::cfg.get_flag("SelfGravityKernelUpdate", "yes");
 	self_gravity_steps_between_kernel_update = config::cfg.get<unsigned int>("SelfGravityStepsBetweenKernelUpdate", 20);
 	self_gravity_aspectratio_change_threshold = config::cfg.get<double>("SelfGravityAspectRatioChangeThreshold", 0.001);
 
     if (self_gravity) {
-		logging::print_master(LOG_INFO "Self gravity enabled. It uses the '%s' mode. The kernel is updated every %u steps and after aspect ratio changed by %f.\n", sgmode.c_str(), self_gravity_steps_between_kernel_update, self_gravity_aspectratio_change_threshold);
+	logging::print_master(LOG_INFO "Self gravity enabled. It uses the '%s' mode.\n", sgmode.c_str());
+    }
+
+    if (self_gravity_kernel_update) {
+	logging::print_master(LOG_INFO "The kernel is updated every %u steps and after aspect ratio changed by %f.\n", self_gravity_steps_between_kernel_update, self_gravity_aspectratio_change_threshold);
+
+    } else {
+	logging::print_master(LOG_INFO "The kernel is constant for the whole simulation.\n");
+
     }
 
 

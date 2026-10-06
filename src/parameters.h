@@ -231,6 +231,7 @@ enum t_sg {
     sg_BK,    // exact solution for the kernel using bessel functions by Steven Rendon Restrepo
 };
 extern t_sg self_gravity_mode;
+extern bool self_gravity_kernel_update;
 extern unsigned int self_gravity_steps_between_kernel_update;
 extern double self_gravity_aspectratio_change_threshold;
 
